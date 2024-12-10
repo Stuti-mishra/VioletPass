@@ -17,32 +17,33 @@ var apigClient = apigClientFactory.newClient({
 
 const App = () => {
   // Sample events data
-  // const [events] = useState([
-  //   {
-  //     id: 1,
-  //     name: 'Music Festival 2024',
-  //     location: 'Central Park, NY',
-  //     date: '2024-12-15',
-  //     ticketsLeft: 25,
-  //     description: 'An exciting music festival featuring top artists.',
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Tech Conference',
-  //     location: 'Silicon Valley, CA',
-  //     date: '2024-12-20',
-  //     ticketsLeft: 50,
-  //     description: 'Join us for an informative conference on tech innovations.',
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Art Exhibition',
-  //     location: 'Museum of Modern Art, NY',
-  //     date: '2024-12-30',
-  //     ticketsLeft: 10,
-  //     description: 'Explore stunning art pieces from world-renowned artists.',
-  //   },
-  // ]);
+  const static_data = [
+    {
+      id: 1,
+      name: "Music Festival 2024",
+      location: "Central Park, NY",
+      date: "2024-12-15",
+      ticketsLeft: 25,
+      description: "An exciting music festival featuring top artists.",
+    },
+    {
+      id: 2,
+      name: "Tech Conference",
+      location: "Silicon Valley, CA",
+      date: "2024-12-20",
+      ticketsLeft: 50,
+      description: "An exciting music festival featuring top artists.",
+    },
+    {
+      id: 3,
+      name: "Art Exhibition",
+      location: "Museum of Modern Art, NY",
+      date: "2024-12-30",
+      ticketsLeft: 10,
+      description: "An exciting music festival featuring top artists.",
+      // description: 'Explore stunning art pieces from world-renowned artists.',
+    },
+  ];
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
@@ -51,7 +52,7 @@ const App = () => {
       try {
         const response = await apigClient.eventsGet({}, {}, {});
         console.log('Response',response)
-        setEvents(response.data.body); // Update events with the fetched data
+        setEvents(response.data); // Update events with the fetched data
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -108,8 +109,8 @@ const App = () => {
           marginTop: '2rem',
         }}
       >
-        {events.map((event) => (
-          <EventCard key={event.event_id} event={event} onKnowMore={handleKnowMore} />
+        {events.map((event,i) => (
+          <EventCard key={event.event_id} event={{...event,description:static_data[i]['description']}} onKnowMore={handleKnowMore} />
         ))}
       </div>
       {/* Event Modal */}
