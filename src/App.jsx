@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Header from './components/Header';
@@ -10,34 +10,55 @@ import EventModal from './components/EventModal';
 import BookTickets from './components/BookTickets';
 import Payment from './components/Payment';
 
+// eslint-disable-next-line no-undef
+var apigClient = apigClientFactory.newClient({
+  apiKey: import.meta.env.API_KEY,
+});
+
 const App = () => {
   // Sample events data
-  const [events] = useState([
-    {
-      id: 1,
-      name: 'Music Festival 2024',
-      location: 'Central Park, NY',
-      date: '2024-12-15',
-      ticketsLeft: 25,
-      description: 'An exciting music festival featuring top artists.',
-    },
-    {
-      id: 2,
-      name: 'Tech Conference',
-      location: 'Silicon Valley, CA',
-      date: '2024-12-20',
-      ticketsLeft: 50,
-      description: 'Join us for an informative conference on tech innovations.',
-    },
-    {
-      id: 3,
-      name: 'Art Exhibition',
-      location: 'Museum of Modern Art, NY',
-      date: '2024-12-30',
-      ticketsLeft: 10,
-      description: 'Explore stunning art pieces from world-renowned artists.',
-    },
-  ]);
+  // const [events] = useState([
+  //   {
+  //     id: 1,
+  //     name: 'Music Festival 2024',
+  //     location: 'Central Park, NY',
+  //     date: '2024-12-15',
+  //     ticketsLeft: 25,
+  //     description: 'An exciting music festival featuring top artists.',
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Tech Conference',
+  //     location: 'Silicon Valley, CA',
+  //     date: '2024-12-20',
+  //     ticketsLeft: 50,
+  //     description: 'Join us for an informative conference on tech innovations.',
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'Art Exhibition',
+  //     location: 'Museum of Modern Art, NY',
+  //     date: '2024-12-30',
+  //     ticketsLeft: 10,
+  //     description: 'Explore stunning art pieces from world-renowned artists.',
+  //   },
+  // ]);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    // Fetch events from the API
+    const fetchEvents = async () => {
+      try {
+        const response = await apigClient.eventsGet({}, {}, {});
+        console.log('Response',response)
+        setEvents(response.data.body); // Update events with the fetched data
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents(); // Trigger the fetch
+  }, []);
 
   // State for the modal
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -88,7 +109,7 @@ const App = () => {
         }}
       >
         {events.map((event) => (
-          <EventCard key={event.id} event={event} onKnowMore={handleKnowMore} />
+          <EventCard key={event.event_id} event={event} onKnowMore={handleKnowMore} />
         ))}
       </div>
       {/* Event Modal */}
