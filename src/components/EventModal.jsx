@@ -19,9 +19,7 @@ const EventModal = ({ event, show, handleClose }) => {
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>{`${capitalize(event.category)} at ${
-          event.venue
-        }`}</Modal.Title>
+        <Modal.Title>{event.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
