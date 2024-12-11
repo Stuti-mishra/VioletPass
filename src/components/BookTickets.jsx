@@ -1,54 +1,61 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './BookTickets.css';
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./BookTickets.css";
 
-const GRID_SIZE = 8; // 8x8 grid (8 rows, 8 columns)
 const MAX_TICKET_LIMIT = 5; // Maximum tickets user can select
 
-// Ticket prices by category
-const TICKET_PRICES = {
-  basic: 50,
-  premium: 100,
-  luxury: 200,
-};
-
-// Generate grid with ticket categories
-const generateGrid = () => {
-  const getRowLabel = (index) => String.fromCharCode(65 + index); // Rows as letters (A-Z)
-  return Array.from({ length: GRID_SIZE }, (_, rowIndex) =>
-    Array.from({ length: GRID_SIZE }, (_, colIndex) => {
-      let category = 'basic'; // Default category
-      if (rowIndex >= GRID_SIZE - 2) category = 'luxury'; // Last 2 rows are luxury
-      else if (rowIndex >= GRID_SIZE - 4) category = 'premium'; // Next 2 rows are premium
-
-      return {
-        id: `${getRowLabel(rowIndex)}${colIndex + 1}`, // Example: A1, B2
-        status: 'available',
-        category,
-	price: TICKET_PRICES[category], // Assign price based on category
-      };
-    })
-  );
-};
-
 const BookTickets = () => {
-  const [grid, setGrid] = useState(generateGrid());
+  const { state } = useLocation(); // Access the passed event
+  const { event } = state || {}; // Destructure the event variable
   const [selectedTickets, setSelectedTickets] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state for API call
   const navigate = useNavigate();
 
-  const userId = 'user123'; // Simulated user ID
+  const userId = "user123"; // Simulated user ID
 
+  // Sort tickets by seat_no
+  const sortTickets = (tickets) => {
+    return [...tickets].sort((a, b) => {
+      const parseSeat = (seat) => {
+        const match = seat.match(/^([A-Z]+)(\d+)$/);
+        if (!match) return [0, 0]; // Fallback for unexpected format
+        const [_, letters, number] = match;
+        const letterValue = letters
+          .split("")
+          .reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 64), 0); // Convert letters to a numeric value
+        return [letterValue, parseInt(number, 10)];
+      };
+
+      const [aRow, aCol] = parseSeat(a.seat_no);
+      const [bRow, bCol] = parseSeat(b.seat_no);
+
+      return aRow === bRow ? aCol - bCol : aRow - bRow;
+    });
+  };
+
+  // Group sorted tickets into rows of 10
+  const groupTickets = (tickets) => {
+    const sortedTickets = sortTickets(tickets);
+    const rows = [];
+    const seatsPerRow = 10;
+
+    for (let i = 0; i < sortedTickets.length; i += seatsPerRow) {
+      rows.push(sortedTickets.slice(i, i + seatsPerRow)); // Create rows of 10 tickets
+    }
+
+    return rows;
+  };
+
+  const ticketRows = event?.seats ? groupTickets(event.seats) : [];
+
+  // Handle ticket click
   const handleTicketClick = (ticket) => {
-    if (ticket.status === 'booked') return;
-
-    const isSelected = selectedTickets.find((t) => t.id === ticket.id);
-    if (isSelected) {
+    if (selectedTickets.find((t) => t.seat_no === ticket.seat_no)) {
       setSelectedTickets((prev) =>
-        prev.filter((t) => t.id !== ticket.id)
+        prev.filter((t) => t.seat_no !== ticket.seat_no)
       );
     } else {
-      if (selectedTickets.length < MAX_TICKET_LIMIT) {
+      if (selectedTickets.length <= MAX_TICKET_LIMIT) {
         setSelectedTickets((prev) => [...prev, ticket]);
       } else {
         alert(`You can only select up to ${MAX_TICKET_LIMIT} tickets!`);
@@ -56,9 +63,10 @@ const BookTickets = () => {
     }
   };
 
+  // Handle confirm booking
   const handleConfirmBooking = async () => {
     if (selectedTickets.length === 0) {
-      alert('Please select tickets before confirming booking!');
+      alert("Please select tickets before confirming booking!");
       return;
     }
 
@@ -70,13 +78,9 @@ const BookTickets = () => {
         setTimeout(() => {
           resolve({
             success: true,
-            tickets: selectedTickets.map((ticket) => ({
-			id: ticket.id,
-			category: ticket.category,
-			price: ticket.price,
-		})),
+            tickets: selectedTickets,
             lockTime: 300, // Lock time in seconds
-            message: 'Tickets reserved successfully.',
+            message: "Tickets reserved successfully.",
           });
         }, 1000);
       });
@@ -85,73 +89,87 @@ const BookTickets = () => {
 
       if (data.success) {
         // Navigate to the payment screen with server response
-        navigate('/payment', { state: { reservationDetails: data } });
+        navigate("/payment", { state: { reservationDetails: data } });
       } else {
-        alert('Reservation failed! Please try again.');
+        alert("Reservation failed! Please try again.");
       }
     } catch (error) {
-      console.error('Reservation failed:', error);
-      alert('Something went wrong. Please try again.');
+      console.error("Reservation failed:", error);
+      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const getTicketClass = (ticket) => {
-    if (selectedTickets.find((t) => t.id === ticket.id)) return 'selected';
-    return ticket.category; // Use category as the class for color
-  };
+const getTicketClass = (ticket) => {
+  if (ticket.status === "locked") return "locked"; // Locked ticket
+  if (ticket.status === "booked") return "booked"; // Booked ticket
+  if (selectedTickets.find((t) => t.seat_no === ticket.seat_no))
+    return "selected"; // Selected ticket
+  return ticket.category; // Default category-based styling
+};
 
   return (
     <div className="container">
       <div className="row justify-content-center">
         {/* Main Seats Section */}
-          <h1 className="text-center mb-4">Ticket Booking</h1>
+        <h1 className="text-center mb-4 page-heading">
+          {event?.name || "Event Name"}
+        </h1>
+
         <div className="col-lg-8 col-md-10 col-sm-12 text-end">
           <div className="grid">
-            {grid.map((row, rowIndex) => (
-              <div key={rowIndex} className="row justify-content-center">
-                {row.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className={`ticket ${getTicketClass(ticket)}`}
-                    onClick={() => handleTicketClick(ticket)}
-                  >
-                    {ticket.id}
-                  </div>
-                ))}
-              </div>
-            ))}
-	    <div className="actions text-center mt-4">
-            <p>
-              Selected Tickets: {selectedTickets.map((t) => t.id).join(', ')}
-            </p>
-            <button
-              className="btn btn-primary"
-              onClick={handleConfirmBooking}
-              disabled={loading || selectedTickets.length === 0}
-            >
-              {loading ? 'Reserving...' : 'Confirm Booking'}
-            </button>
+            {/* Render available seats grouped into rows */}
+            {ticketRows.length > 0 ? (
+              ticketRows.map((row, rowIndex) => (
+                <div key={rowIndex} className="row justify-content-center">
+                  {row.map((seat) => (
+                    <div
+                      key={seat.seat_no}
+                      className={`ticket ${getTicketClass(seat)}`}
+                      onClick={() => handleTicketClick(seat)}
+                    >
+                      {seat.seat_no}
+                    </div>
+                  ))}
+                </div>
+              ))
+            ) : (
+              <p className="text-center">No seats available for this event.</p>
+            )}
+            <div className="actions text-center mt-4">
+              <p>
+                Selected Tickets:{" "}
+                {selectedTickets.map((t) => t.seat_no).join(", ")}
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={handleConfirmBooking}
+                disabled={loading || selectedTickets.length === 0}
+              >
+                {loading ? "Reserving..." : "Confirm Booking"}
+              </button>
+            </div>
           </div>
-          </div>
-          
         </div>
 
         {/* Legend Section */}
         <div className="col-lg-4 col-md-6 col-sm-12">
           <div className="legend">
             <div className="legend-item">
-              <span className="ticket basic"></span> Basic - $
-              {TICKET_PRICES.basic}
+              <span className="ticket basic"></span> Basic
             </div>
             <div className="legend-item">
-              <span className="ticket premium"></span> Premium - $
-              {TICKET_PRICES.premium}
+              <span className="ticket premium"></span> Premium
             </div>
             <div className="legend-item">
-              <span className="ticket luxury"></span> Luxury - $
-              {TICKET_PRICES.luxury}
+              <span className="ticket luxury"></span> Luxury
+            </div>
+            <div className="legend-item">
+              <span className="ticket locked"></span> Locked
+            </div>
+            <div className="legend-item">
+              <span className="ticket booked"></span> Booked
             </div>
           </div>
         </div>

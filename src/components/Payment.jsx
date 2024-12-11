@@ -27,6 +27,7 @@ const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const reservationDetails = location.state?.reservationDetails;
+  console.log('reser',reservationDetails)
 
   const [timeLeft, setTimeLeft] = useState(reservationDetails?.lockTime || 0); // Lock time in seconds
 

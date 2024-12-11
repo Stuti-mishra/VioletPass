@@ -12,6 +12,21 @@
 	justify-content: center;
 	margin-bottom: 8px;
 }
+.page-heading{
+	/* background: linear-gradient(90deg, #6f42c1, #5e35b1); */
+	color: rgb(111, 66, 193);
+	padding: 1.5rem 2rem;
+	/* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+	text-align: center;
+	/* position: sticky; */
+	top: 0;
+	z-index: 1000;
+	font-size: 2rem;
+	font-weight: bold;
+	margin: 0;
+	/* text-transform: uppercase; */
+	letter-spacing: 1px;
+}
 
 .ticket {
 	width: 40px;
@@ -75,4 +90,20 @@
 .confirm-ticket{
 	background-color: green;
 	color: white;
+}
+
+/* Locked ticket style */
+.ticket.locked {
+	background-color: #ff8c00;
+	color: #ffffff;
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+/* Booked ticket style */
+.ticket.booked {
+	background-color: #dae3dc;
+	color: #155724;
+	cursor: not-allowed;
+	opacity: 0.7;
 }
