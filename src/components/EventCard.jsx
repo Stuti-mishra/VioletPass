@@ -17,13 +17,21 @@ const EventCard = ({ event, onKnowMore }) => {
         <Card.Title style={{ color: "#6f42c1" }}>{event.name}</Card.Title>
         <Card.Text>
           {/* {event.description} */}
-          {`${capitalize(event.category)} at ${event.venue}`}
+          {/* {`${capitalize(event.category)} at ${event.venue}`} */}
           <br />
           <strong>Location:</strong> {event.location || "N/A"}
           <br />
-          <strong>Start:</strong> {event.startDate || "N/A"}
+          <strong>Start:</strong>{" "}
+          {new Date(event.start_date).toLocaleString("en-US", {
+            dateStyle: "short",
+            timeStyle: "short",
+          }) || "N/A"}
           <br />
-          <strong>End:</strong> {event.endDate || "N/A"}
+          <strong>End:</strong>{" "}
+          {new Date(event.end_date).toLocaleString("en-US", {
+            dateStyle: "short",
+            timeStyle: "short",
+          }) || "N/A"}
         </Card.Text>
         <Button variant="primary" onClick={() => onKnowMore(event)}>
           Know More

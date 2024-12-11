@@ -9,6 +9,7 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 const EventModal = ({ event, show, handleClose }) => {
   const navigate = useNavigate(); // Initialize navigate function
   if (!event) return null;
+  console.log('Event',event)
 
   const handleBookTicket = () => {
     // Redirect to ticket booking page
@@ -27,10 +28,18 @@ const EventModal = ({ event, show, handleClose }) => {
           <strong>Description:</strong> {event.description || "Not Available"}
         </p>
         <p>
-          <strong>Start Date:</strong> {event.startDate || "Not Available"}
+          <strong>Start Date:</strong>{" "}
+          {new Date(event.start_date).toLocaleString("en-US", {
+            dateStyle: "long",
+            timeStyle: "short",
+          }) || "Not Available"}
         </p>
         <p>
-          <strong>End Date:</strong> {event.endDate || "Not Available"}
+          <strong>End Date:</strong>{" "}
+          {new Date(event.end_date).toLocaleString("en-US", {
+            dateStyle: "long",
+            timeStyle: "short",
+          }) || "Not Available"}
         </p>
         <p>
           <strong>Tickets Available:</strong>{" "}

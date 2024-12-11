@@ -16,43 +16,28 @@ var apigClient = apigClientFactory.newClient({
 });
 
 const App = () => {
-  // Sample events data
-  const static_data = [
-    {
-      id: 1,
-      name: "Music Festival 2024",
-      location: "Central Park, NY",
-      date: "2024-12-15",
-      ticketsLeft: 25,
-      description: "An exciting music festival featuring top artists.",
-    },
-    {
-      id: 2,
-      name: "Tech Conference",
-      location: "Silicon Valley, CA",
-      date: "2024-12-20",
-      ticketsLeft: 50,
-      description: "An exciting music festival featuring top artists.",
-    },
-    {
-      id: 3,
-      name: "Art Exhibition",
-      location: "Museum of Modern Art, NY",
-      date: "2024-12-30",
-      ticketsLeft: 10,
-      description: "An exciting music festival featuring top artists.",
-      // description: 'Explore stunning art pieces from world-renowned artists.',
-    },
-  ];
   const [events, setEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [endedEvents, setEndedEvents] = useState([]);
+  const [archivedEvents, setArchivedEvents] = useState([]); // Example for archived logic
 
   useEffect(() => {
     // Fetch events from the API
     const fetchEvents = async () => {
       try {
         const response = await apigClient.eventsGet({}, {}, {});
-        console.log('Response',response)
+        console.log("Response", response);
         setEvents(response.data); // Update events with the fetched data
+        const data = response.data
+        const today = new Date();
+        const upcoming = data.filter(
+          (event) => new Date(event.end_date) > today
+        );
+        const ended = data.filter((event) => new Date(event.end_date) <= today);
+        const archived = data.filter((event) => event.isArchived); // Example logic for archived
+        setUpcomingEvents(upcoming);
+        setEndedEvents(ended);
+        setArchivedEvents(archived);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -79,7 +64,7 @@ const App = () => {
 
   // Home Page Component
   const Home = () => (
-    <div style={{ padding: '2rem', backgroundColor: '#f8f9fa' }}>
+    <div style={{ padding: "2rem", backgroundColor: "#f8f9fa" }}>
       <h2>Welcome to the Event Booking App</h2>
       <p>Explore and book tickets for exciting events near you.</p>
     </div>
@@ -87,47 +72,44 @@ const App = () => {
 
   // Events Page Component
   const Events = () => (
-    <div style={{ flex: 1, padding: '2rem', backgroundColor: '#f8f9fa' }}>
+    <div style={{ flex: 1, padding: "2rem", backgroundColor: "#f8f9fa" }}>
       <h2>All Events</h2>
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
         }}
       >
         <SearchBar />
         <CreateNewButton />
       </div>
-      <Tabs />
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          marginTop: '2rem',
-        }}
-      >
-        {events.map((event,i) => (
-          <EventCard key={event.event_id} event={{...event,description:static_data[i]['description']}} onKnowMore={handleKnowMore} />
-        ))}
-      </div>
+      <Tabs
+        upcomingEvents={upcomingEvents}
+        endedEvents={endedEvents}
+        archivedEvents={archivedEvents}
+        onKnowMore={handleKnowMore}
+      />
       {/* Event Modal */}
-      <EventModal event={selectedEvent} show={showModal} handleClose={handleCloseModal} />
+      <EventModal
+        event={selectedEvent}
+        show={showModal}
+        handleClose={handleCloseModal}
+      />
     </div>
   );
 
   // Not Found Page
   const NotFound = () => (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <div style={{ padding: "2rem", textAlign: "center" }}>
       <h2>404 - Page Not Found</h2>
       <p>The page you are looking for does not exist.</p>
     </div>
   );
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />
       <Routes>
         <Route path="/book-ticket" element={<BookTickets />} />
