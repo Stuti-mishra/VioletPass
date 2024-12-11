@@ -1,6 +1,5 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './Payment.css'; // Assume styling will be added for consistency
 
 const Timer = memo(({ timeLeft, onTimeout }) => {
   useEffect(() => {
@@ -13,11 +12,13 @@ const Timer = memo(({ timeLeft, onTimeout }) => {
       onTimeout();
     }, 1000);
 
-    return () => clearInterval(timer); // Cleanup
+    return () => clearInterval(timer);
   }, [timeLeft, onTimeout]);
 
   return (
-    <p><strong>Time Left to Pay:</strong> {timeLeft} seconds</p>
+    <p>
+      <strong>Time Left to Pay:</strong> {timeLeft} seconds
+    </p>
   );
 });
 
@@ -26,14 +27,21 @@ Timer.displayName = 'Timer';
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const reservationDetails = location.state?.reservationDetails;
 
-  const [timeLeft, setTimeLeft] = useState(reservationDetails?.lockTime || 0); // Lock time in seconds
+  const reservationDetails = location.state?.reservationDetails || {
+    eventName: 'Music Festival 2024',
+    lockTime: 300,
+    tickets: [
+      { id: 'A1', category: 'VIP', price: 200 },
+      { id: 'A2', category: 'VIP', price: 200 },
+    ],
+  };
+
+  const [timeLeft, setTimeLeft] = useState(reservationDetails.lockTime);
 
   useEffect(() => {
     if (!reservationDetails) {
-      navigate('/book-ticket');
-      return;
+      navigate('/'); // Redirect to home if no reservation details are passed
     }
   }, [reservationDetails, navigate]);
 
@@ -41,7 +49,7 @@ const Payment = () => {
     setTimeLeft((prev) => {
       if (prev <= 1) {
         alert('Time expired! Tickets are now available to others.');
-        navigate('/book-ticket'); // Redirect after timeout
+        navigate('/'); // Redirect after timeout
         return 0;
       }
       return prev - 1;
@@ -50,7 +58,14 @@ const Payment = () => {
 
   const handlePayment = () => {
     alert('Payment Successful!');
-    navigate('/events'); // Redirect to events page after payment
+    navigate('/payment_success', {
+      state: {
+        name: 'John Doe', // Replace with dynamic user details
+        eventName: reservationDetails.eventName,
+        tickets: reservationDetails.tickets.length,
+        seats: reservationDetails.tickets.map((ticket) => ticket.id),
+      },
+    });
   };
 
   if (!reservationDetails) return null;
@@ -61,39 +76,45 @@ const Payment = () => {
   );
 
   return (
-    <div className="payment-page">
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
       <h1>Payment for Tickets</h1>
-      <div className="reservation-details">
-        <Timer timeLeft={timeLeft} onTimeout={handleTimeout} />
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Ticket ID</th>
-              <th>Category</th>
-              <th>Price</th>
+      <Timer timeLeft={timeLeft} onTimeout={handleTimeout} />
+      <table style={{ margin: '0 auto', borderCollapse: 'collapse', width: '60%' }}>
+        <thead>
+          <tr>
+            <th style={{ borderBottom: '1px solid #ccc', padding: '0.5rem' }}>Ticket ID</th>
+            <th style={{ borderBottom: '1px solid #ccc', padding: '0.5rem' }}>Category</th>
+            <th style={{ borderBottom: '1px solid #ccc', padding: '0.5rem' }}>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reservationDetails.tickets.map((ticket) => (
+            <tr key={ticket.id}>
+              <td style={{ padding: '0.5rem' }}>{ticket.id}</td>
+              <td style={{ padding: '0.5rem' }}>{ticket.category}</td>
+              <td style={{ padding: '0.5rem' }}>${ticket.price}</td>
             </tr>
-          </thead>
-          <tbody>
-            {reservationDetails.tickets.map((ticket) => (
-              <tr key={ticket.id}>
-                <td>{ticket.id}</td>
-                <td>{ticket.category}</td>
-                <td>${ticket.price}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p><strong>Total Price:</strong> ${totalPrice}</p>
-      </div>
-      <div className="payment-actions">
-        <button
-          onClick={handlePayment}
-          disabled={timeLeft === 0}
-          className="payment-button"
-        >
-          Proceed to Payment
-        </button>
-      </div>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        <strong>Total Price:</strong> ${totalPrice}
+      </p>
+      <button
+        style={{
+          marginTop: '1rem',
+          padding: '0.5rem 1rem',
+          backgroundColor: '#28a745',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+        onClick={handlePayment}
+        disabled={timeLeft === 0}
+      >
+        Proceed to Payment
+      </button>
     </div>
   );
 };
