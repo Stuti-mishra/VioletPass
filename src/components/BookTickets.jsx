@@ -71,13 +71,14 @@ const BookTickets = () => {
     }
 
     setLoading(true);
-
+    console.log('Evnet',event)
     try {
       // Mock API call
       const mockApiCall = new Promise((resolve) => {
         setTimeout(() => {
           resolve({
             success: true,
+            event:event,
             tickets: selectedTickets,
             lockTime: 300, // Lock time in seconds
             message: "Tickets reserved successfully.",
@@ -86,6 +87,7 @@ const BookTickets = () => {
       });
 
       const data = await mockApiCall;
+      console.log('Data',data)
 
       if (data.success) {
         // Navigate to the payment screen with server response
