@@ -72,7 +72,10 @@ const handlePayment = async () => {
   try {
     // Step 1: Call /pay POST to initiate the payment
     const postResponse = await apigClient.payPost({}, payBody, {});
-    const paymentId = postResponse.data.payment_id;
+   
+    console.log('Payment Post Response',postResponse)
+    const resBody = JSON.parse(postResponse.data.body); 
+    const paymentId = resBody.payment_reference_id
 
     if (!paymentId) {
       alert("Payment initialization failed. Please try again.");
@@ -85,17 +88,18 @@ const handlePayment = async () => {
     const checkPaymentStatus = async () => {
       const getParams = { payment_id: paymentId };
       const getResponse = await apigClient.payGet(getParams, {}, {});
-      return getResponse.data.status;
+      return getResponse.data;
     };
 
     const status = await checkPaymentStatus();
+    console.log('Status',status)
 
-    if (status === "SUCCESS") {
+    if (status.status === "success") {
       alert("Payment Successful!");
       navigate("/payment_success", {
         state: {
           name: formData.name_on_card,
-          eventName: reservationDetails.eventName,
+          eventName: reservationDetails.event.name,
           tickets: reservationDetails.tickets.length,
           seats: reservationDetails.tickets.map((ticket) => ticket.seat_no),
         },

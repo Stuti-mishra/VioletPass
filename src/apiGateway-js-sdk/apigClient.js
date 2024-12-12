@@ -86,13 +86,13 @@ apigClientFactory.newClient = function (config) {
     apigClient.bookGet = function (params, body, additionalParams) {
         if(additionalParams === undefined) { additionalParams = {}; }
         
-        apiGateway.core.utils.assertParametersDefined(params, [], ['body']);
+        apiGateway.core.utils.assertParametersDefined(params, ['reserve_id'], ['body']);
         
         var bookGetRequest = {
             verb: 'get'.toUpperCase(),
             path: pathComponent + uritemplate('/book').expand(apiGateway.core.utils.parseParametersToObject(params, [])),
             headers: apiGateway.core.utils.parseParametersToObject(params, []),
-            queryParams: apiGateway.core.utils.parseParametersToObject(params, []),
+            queryParams: apiGateway.core.utils.parseParametersToObject(params, ['reserve_id']),
             body: body
         };
         
@@ -194,13 +194,13 @@ apigClientFactory.newClient = function (config) {
     apigClient.payGet = function (params, body, additionalParams) {
         if(additionalParams === undefined) { additionalParams = {}; }
         
-        apiGateway.core.utils.assertParametersDefined(params, [], ['body']);
+        apiGateway.core.utils.assertParametersDefined(params, ['payment_id'], ['body']);
         
         var payGetRequest = {
             verb: 'get'.toUpperCase(),
             path: pathComponent + uritemplate('/pay').expand(apiGateway.core.utils.parseParametersToObject(params, [])),
             headers: apiGateway.core.utils.parseParametersToObject(params, []),
-            queryParams: apiGateway.core.utils.parseParametersToObject(params, []),
+            queryParams: apiGateway.core.utils.parseParametersToObject(params, ['payment_id']),
             body: body
         };
         

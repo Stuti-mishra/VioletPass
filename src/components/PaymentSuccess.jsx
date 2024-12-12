@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 
 const PaymentSuccess = () => {
   const { state } = useLocation();
-  const { name, eventName, tickets, event, seats } = state || {};
-  console.log(event)
+  const { name, eventName, tickets, seats } = state || {};
+  console.log('Payemtn succ',state)
 
   return (
     <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -24,7 +24,7 @@ const PaymentSuccess = () => {
       >
         <h3>Booking Details</h3>
         <p>
-          <strong>Event Name:</strong> {event.name || 'N/A'}
+          <strong>Event Name:</strong> {eventName || 'N/A'}
         </p>
         <p>
           <strong>Tickets:</strong> {tickets || 'N/A'}
