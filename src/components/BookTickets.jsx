@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./BookTickets.css";
+import apigClient from "./api";
 
 const MAX_TICKET_LIMIT = 5; // Maximum tickets user can select
+const USERID = "pranav_1"; // Simulated user ID
+ 
+// var apigClient = apigClientFactory.newClient({
+//   apiKey: import.meta.env.API_KEY,
+// });
 
 const BookTickets = () => {
   const { state } = useLocation(); // Access the passed event
@@ -11,7 +17,7 @@ const BookTickets = () => {
   const [loading, setLoading] = useState(false); // Loading state for API call
   const navigate = useNavigate();
 
-  const userId = "user123"; // Simulated user ID
+  
 
   // Sort tickets by seat_no
   const sortTickets = (tickets) => {
@@ -55,7 +61,7 @@ const BookTickets = () => {
         prev.filter((t) => t.seat_no !== ticket.seat_no)
       );
     } else {
-      if (selectedTickets.length <= MAX_TICKET_LIMIT) {
+      if (selectedTickets.length < MAX_TICKET_LIMIT) {
         setSelectedTickets((prev) => [...prev, ticket]);
       } else {
         alert(`You can only select up to ${MAX_TICKET_LIMIT} tickets!`);
@@ -64,44 +70,56 @@ const BookTickets = () => {
   };
 
   // Handle confirm booking
-  const handleConfirmBooking = async () => {
-    if (selectedTickets.length === 0) {
-      alert("Please select tickets before confirming booking!");
-      return;
-    }
+const handleConfirmBooking = async () => {
+  if (selectedTickets.length === 0) {
+    alert("Please select tickets before confirming booking!");
+    return;
+  }
 
-    setLoading(true);
-    console.log('Evnet',event)
-    try {
-      // Mock API call
-      const mockApiCall = new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            event:event,
+  setLoading(true);
+
+  try {
+    // Step 1: Call /book POST to reserve tickets
+    const postBody = {
+      event_id: event.event_id,
+      user_id: USERID, // Replace with dynamic user_id
+      seat_numbers: selectedTickets.map((ticket) => ticket.seat_no),
+    };
+
+    const postResponse = await apigClient.bookPost({}, postBody, {});
+    const reserveId = postResponse.data.reserve_id;
+
+    console.log("Reservation initiated, reserve_id:", reserveId);
+
+    // Step 2: Call /book GET to check reservation status
+    const getParams = { reserve_id: reserveId };
+    const getResponse = await apigClient.bookGet(getParams, {}, {});
+    console.log('Get Response',getResponse)
+    const status = getResponse.data.status;
+
+    if (status === "SUCCESS") {
+      console.log("Reservation successful!");
+      navigate("/payment", {
+        state: {
+          reservationDetails: {
+            event,
             tickets: selectedTickets,
-            lockTime: 300, // Lock time in seconds
-            message: "Tickets reserved successfully.",
-          });
-        }, 1000);
+            reserveId,
+            user_id: USERID
+          },
+        },
       });
-
-      const data = await mockApiCall;
-      console.log('Data',data)
-
-      if (data.success) {
-        // Navigate to the payment screen with server response
-        navigate("/payment", { state: { reservationDetails: data } });
-      } else {
-        alert("Reservation failed! Please try again.");
-      }
-    } catch (error) {
-      console.error("Reservation failed:", error);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+    } else {
+      alert("Reservation failed. Please try again with different seats.");
     }
-  };
+  } catch (error) {
+    console.error("Reservation failed:", error);
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 const getTicketClass = (ticket) => {
   if (ticket.status === "locked") return "locked"; // Locked ticket

@@ -10,11 +10,12 @@ import EventModal from './components/EventModal';
 import BookTickets from './components/BookTickets';
 import Payment from './components/Payment';
 import PaymentSuccess from './components/PaymentSuccess'; // Import PaymentSuccess
+import apigClient from './components/api';
 
-// eslint-disable-next-line no-undef
-var apigClient = apigClientFactory.newClient({
-  apiKey: import.meta.env.API_KEY,
-});
+ 
+// var apigClient = apigClientFactory.newClient({
+//   apiKey: import.meta.env.API_KEY,
+// });
 
 const App = () => {
   const [events, setEvents] = useState([]);

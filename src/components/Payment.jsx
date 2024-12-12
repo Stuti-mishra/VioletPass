@@ -1,5 +1,6 @@
-import React, { useEffect, useState,useRef, memo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef, memo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import apigClient from "./api";
 
 const Timer = memo(({ timeLeft }) => (
   <p>
@@ -7,35 +8,40 @@ const Timer = memo(({ timeLeft }) => (
   </p>
 ));
 
-Timer.displayName = 'Timer';
+Timer.displayName = "Timer";
 
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-   
   const reservationDetails = location.state?.reservationDetails || {
-    eventName: 'Music Festival 2024',
+    eventName: "Music Festival 2024",
     lockTime: 300,
     tickets: [
-      { id: 'A1', category: 'VIP', price: 200 },
-      { id: 'A2', category: 'VIP', price: 200 },
+      { id: "A1", category: "VIP", price: 200 },
+      { id: "A2", category: "VIP", price: 200 },
     ],
+    reserveId: "mock-reserve-id",
   };
-  console.log('Res',reservationDetails)
 
   const [timeLeft, setTimeLeft] = useState(reservationDetails.lockTime);
-   const timerRef = useRef(null);
+  const [formData, setFormData] = useState({
+    card_number: "",
+    name_on_card: "",
+    expiry_date: "",
+    cvv: "",
+  });
+
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    // Start countdown timer
     if (timeLeft > 0) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             alert("Time expired! Tickets are now available to others.");
-            navigate("/"); // Redirect after timeout
+            navigate("/");
             return 0;
           }
           return prev - 1;
@@ -43,89 +49,184 @@ const Payment = () => {
       }, 1000);
     }
 
-    return () => clearInterval(timerRef.current); // Cleanup on component unmount
+    return () => clearInterval(timerRef.current);
   }, []);
 
-  const handleTimeout = () => {
-    setTimeLeft((prev) => {
-      if (prev <= 1) {
-        alert('Time expired! Tickets are now available to others.');
-        navigate('/'); // Redirect after timeout
-        return 0;
-      }
-      return prev - 1;
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePayment = () => {
-    alert('Payment Successful!');
-    navigate('/payment_success', {
-      state: {
-        name: 'John Doe', // Replace with dynamic user details
-        eventName: reservationDetails.eventName,
-        tickets: reservationDetails.tickets.length,
-        event:reservationDetails.event,
-        seats: reservationDetails.tickets.map((ticket) => ticket.seat_no),
-      },
-    });
+const handlePayment = async () => {
+  const payBody = {
+    reserve_id: reservationDetails.reserveId,
+    card_number: formData.card_number,
+    name_on_card: formData.name_on_card,
+    expiry_date: formData.expiry_date,
+    cvv: formData.cvv,
+    event_id: reservationDetails.event.event_id,
+    user_id: reservationDetails.user_id, // Replace with dynamic user ID
+    seat_numbers: reservationDetails.tickets.map((ticket) => ticket.seat_no),
   };
 
-  if (!reservationDetails) return null;
+  try {
+    // Step 1: Call /pay POST to initiate the payment
+    const postResponse = await apigClient.payPost({}, payBody, {});
+    const paymentId = postResponse.data.payment_id;
 
- const totalPrice = reservationDetails.tickets.reduce(
-   (sum, ticket) => sum + parseFloat(ticket.cost),
-   0
- );
+    if (!paymentId) {
+      alert("Payment initialization failed. Please try again.");
+      return;
+    }
 
+    console.log("Payment initiated, payment_id:", paymentId);
+
+    // Step 2: Call /pay GET to check the payment status
+    const checkPaymentStatus = async () => {
+      const getParams = { payment_id: paymentId };
+      const getResponse = await apigClient.payGet(getParams, {}, {});
+      return getResponse.data.status;
+    };
+
+    const status = await checkPaymentStatus();
+
+    if (status === "SUCCESS") {
+      alert("Payment Successful!");
+      navigate("/payment_success", {
+        state: {
+          name: formData.name_on_card,
+          eventName: reservationDetails.eventName,
+          tickets: reservationDetails.tickets.length,
+          seats: reservationDetails.tickets.map((ticket) => ticket.seat_no),
+        },
+      });
+    } else if (status === "FAILURE") {
+      alert("Payment failed. Please try again.");
+    } else {
+      alert("Unexpected payment status. Please contact support.");
+    }
+  } catch (error) {
+    console.error("Payment error:", error);
+    alert("Something went wrong. Please try again.");
+  }
+};
+
+  const totalPrice = reservationDetails.tickets.reduce(
+    (sum, ticket) => sum + parseFloat(ticket.cost),
+    0
+  );
 
   return (
-    <div style={{ textAlign: "center", padding: "2rem" }}>
-      <h1>Payment for Tickets</h1>
-      <Timer timeLeft={timeLeft} onTimeout={handleTimeout} />
-      <table
-        style={{ margin: "0 auto", borderCollapse: "collapse", width: "60%" }}
+    <div
+      style={{
+        display: "flex",
+        padding: "2rem",
+        justifyContent: "space-between",
+      }}
+    >
+      {/* Left: Payment Form */}
+      <div style={{ flex: 1, paddingRight: "1rem" }}>
+        <h2>Payment Details</h2>
+        <form>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>Card Number:</label>
+            <input
+              type="text"
+              name="card_number"
+              value={formData.card_number}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+            />
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>Name on Card:</label>
+            <input
+              type="text"
+              name="name_on_card"
+              value={formData.name_on_card}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+            />
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>Expiry Date:</label>
+            <input
+              type="text"
+              name="expiry_date"
+              value={formData.expiry_date}
+              onChange={handleChange}
+              placeholder="YYYY"
+              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+            />
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>CVV:</label>
+            <input
+              type="text"
+              name="cvv"
+              value={formData.cvv}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handlePayment}
+            disabled={timeLeft === 0}
+            style={{
+              padding: "0.5rem 1rem",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            Confirm Payment
+          </button>
+        </form>
+      </div>
+
+      {/* Right: Reservation Details */}
+      <div
+        style={{ flex: 1, paddingLeft: "1rem", borderLeft: "1px solid #ccc" }}
       >
-        <thead>
-          <tr>
-            <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
-              Ticket ID
-            </th>
-            <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
-              Category
-            </th>
-            <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
-              Price
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {reservationDetails.tickets.map((ticket) => (
-            <tr key={ticket.seat_no}>
-              <td style={{ padding: "0.5rem" }}>{ticket.seat_no}</td>
-              <td style={{ padding: "0.5rem" }}>{ticket.category}</td>
-              <td style={{ padding: "0.5rem" }}>${ticket.cost}</td>
+        <h2>Reservation Details</h2>
+        <Timer timeLeft={timeLeft} />
+        <table
+          style={{
+            margin: "0 auto",
+            borderCollapse: "collapse",
+            width: "100%",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
+                Ticket ID
+              </th>
+              <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
+                Category
+              </th>
+              <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>
+                Price
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <p>
-        <strong>Total Price:</strong> ${totalPrice}
-      </p>
-      <button
-        style={{
-          marginTop: "1rem",
-          padding: "0.5rem 1rem",
-          backgroundColor: "#28a745",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-        onClick={handlePayment}
-        disabled={timeLeft === 0}
-      >
-        Proceed to Payment
-      </button>
+          </thead>
+          <tbody>
+            {reservationDetails.tickets.map((ticket) => (
+              <tr key={ticket.seat_no}>
+                <td style={{ padding: "0.5rem" }}>{ticket.seat_no}</td>
+                <td style={{ padding: "0.5rem" }}>{ticket.category}</td>
+                <td style={{ padding: "0.5rem" }}>${ticket.cost}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p>
+          <strong>Total Price:</strong> ${totalPrice}
+        </p>
+      </div>
     </div>
   );
 };
