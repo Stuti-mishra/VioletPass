@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { useState } from "react";
+import { Form, Button, InputGroup } from "react-bootstrap";
 
-const SearchBar = () => (
-  <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem', gap: '1rem',width:'70%' }}>
-    <input
-  type="text"
-  placeholder="Search by event name..."
-  style={{
-    flex: 1,
-    padding: '0.5rem',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    color: '#212529',
-    
-    backgroundColor: '#f8f9fa', // Light gray background
-  }}
-/>
-  </div>
-);
+const SearchBar = ({ onSearch }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearch = () => {
+    // Call the onSearch function with the search term
+    if (onSearch) onSearch(searchTerm);
+  };
+
+  return (
+    <InputGroup className="mt-3" style={{ maxWidth: "70%" }}>
+      <Form.Control
+        type="text"
+        placeholder="Search by event name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <Button variant="primary" onClick={handleSearch}>
+        Search
+      </Button>
+    </InputGroup>
+  );
+};
 
 export default SearchBar;

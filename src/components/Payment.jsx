@@ -139,7 +139,13 @@ const handlePayment = async () => {
               name="card_number"
               value={formData.card_number}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -149,7 +155,13 @@ const handlePayment = async () => {
               name="name_on_card"
               value={formData.name_on_card}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -160,7 +172,13 @@ const handlePayment = async () => {
               value={formData.expiry_date}
               onChange={handleChange}
               placeholder="YYYY"
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -170,7 +188,13 @@ const handlePayment = async () => {
               name="cvv"
               value={formData.cvv}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <button

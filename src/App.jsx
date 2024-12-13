@@ -28,18 +28,20 @@ const App = () => {
     const fetchEvents = async () => {
       try {
         const response = await apigClient.eventsGet({}, {}, {});
-        console.log('Response', response);
+        console.log("Response", response);
         setEvents(response.data); // Update events with the fetched data
         const data = response.data;
         const today = new Date();
-        const upcoming = data.filter((event) => new Date(event.end_date) > today);
+        const upcoming = data.filter(
+          (event) => new Date(event.end_date) > today
+        );
         const ended = data.filter((event) => new Date(event.end_date) <= today);
         const archived = data.filter((event) => event.isArchived); // Example logic for archived
         setUpcomingEvents(upcoming);
         setEndedEvents(ended);
         setArchivedEvents(archived);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error("Error fetching events:", error);
       }
     };
 
@@ -62,24 +64,53 @@ const App = () => {
     setShowModal(false);
   };
 
+  // const handleSearch = async (searchTerm) => {
+  //   try {
+  //     const response = await apigClient.searchGet({ q: searchTerm }, {}, {});
+  //     console.log("Search Results:", response);
+  //   } catch (error) {
+  //     console.error("Error during search:", error);
+  //   }
+  // };
+  // Local search function
+  const handleSearch = (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === "") {
+      setUpcomingEvents(
+        events.filter((event) => new Date(event.end_date) > new Date())
+      ); // Reset to original upcoming events
+      console.log("Search reset to original upcoming events");
+      return;
+    }
+
+    const filteredEvents = events.filter((event) => {
+      return Object.values(event).some((value) =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+
+    setUpcomingEvents(filteredEvents); // Update upcoming events with the filtered list
+
+    console.log("Search Results:", filteredEvents);
+  };
+
   // Navigation Hook for Redirect
   const navigate = useNavigate();
 
   // Redirect to Payment Success Page
   const handlePaymentSuccess = () => {
-    navigate('/payment_success', {
+    navigate("/payment_success", {
       state: {
-        name: 'John Doe', // Replace with dynamic user name
-        eventName: selectedEvent?.name || 'Sample Event',
+        name: "John Doe", // Replace with dynamic user name
+        eventName: selectedEvent?.name || "Sample Event",
         tickets: 2, // Example: Number of tickets booked
-        seats: ['A1', 'A2'], // Example: Reserved seats
+        seats: ["A1", "A2"], // Example: Reserved seats
       },
     });
   };
 
   // Home Page Component
   const Home = () => (
-    <div style={{ padding: '2rem', backgroundColor: '#f8f9fa' }}>
+    <div style={{ padding: "2rem", backgroundColor: "#f8f9fa" }}>
       <h2>Welcome to the Event Booking App</h2>
       <p>Explore and book tickets for exciting events near you.</p>
     </div>
@@ -87,17 +118,17 @@ const App = () => {
 
   // Events Page Component
   const Events = () => (
-    <div style={{ flex: 1, padding: '2rem', backgroundColor: '#f8f9fa' }}>
+    <div style={{ flex: 1, padding: "2rem", backgroundColor: "#f8f9fa" }}>
       <h2>All Events</h2>
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
         }}
       >
-        <SearchBar />
+        <SearchBar onSearch={handleSearch} />
         <CreateNewButton />
       </div>
       <Tabs
@@ -117,18 +148,21 @@ const App = () => {
 
   // Not Found Page
   const NotFound = () => (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <div style={{ padding: "2rem", textAlign: "center" }}>
       <h2>404 - Page Not Found</h2>
       <p>The page you are looking for does not exist.</p>
     </div>
   );
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />
       <Routes>
         <Route path="/book-ticket" element={<BookTickets />} />
-        <Route path="/payment" element={<Payment onPaymentSuccess={handlePaymentSuccess} />} />
+        <Route
+          path="/payment"
+          element={<Payment onPaymentSuccess={handlePaymentSuccess} />}
+        />
         <Route path="/payment_success" element={<PaymentSuccess />} />
         <Route path="/" element={<Events />} />
         {/* <Route path="/events" element={<Events />} /> */}

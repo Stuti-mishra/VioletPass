@@ -32,7 +32,7 @@ const CreateOrganizerModal = ({ show, handleClose }) => {
             <Form.Label>Email</Form.Label>
             <Form.Control
               type="email"
-              placeholder="undefined"
+              placeholder="someone@violetpass.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
