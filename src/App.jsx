@@ -12,6 +12,7 @@ import Payment from './components/Payment';
 import PaymentSuccess from './components/PaymentSuccess'; // Import PaymentSuccess
 import apigClient from './components/api';
 import MyBookings from './components/MyBookings';
+import { showLoading } from "react-global-loading";
 
  
 // var apigClient = apigClientFactory.newClient({
@@ -27,6 +28,7 @@ const App = () => {
   useEffect(() => {
     // Fetch events from the API
     const fetchEvents = async () => {
+      showLoading(true)
       try {
         const response = await apigClient.eventsGet({}, {}, {});
         console.log("Response", response);
@@ -43,6 +45,8 @@ const App = () => {
         setArchivedEvents(archived);
       } catch (error) {
         console.error("Error fetching events:", error);
+      } finally{
+        showLoading(false)
       }
     };
 

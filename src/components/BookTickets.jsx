@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./BookTickets.css";
 import apigClient from "./api";
 import {USERID} from '../utils'
+import { showLoading } from "react-global-loading";
 
 const MAX_TICKET_LIMIT = 5; // Maximum tickets user can select
 // const USERID = "pranav_1"; // Simulated user ID
@@ -72,6 +73,7 @@ const BookTickets = () => {
     }
 
     setLoading(true);
+    showLoading(true)
 
     try {
       // Step 1: Call /book POST to reserve tickets
@@ -128,6 +130,7 @@ const BookTickets = () => {
       console.error("Error during reservation process:", error);
       alert("Something went wrong. Please try again.");
     } finally {
+      showLoading(false)
       setLoading(false);
     }
   };

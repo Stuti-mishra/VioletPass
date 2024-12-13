@@ -1994,6 +1994,11 @@ react-dom@^18.3.1:
     loose-envify "^1.1.0"
     scheduler "^0.23.2"
 
+react-global-loading@^1.0.14:
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/react-global-loading/-/react-global-loading-1.0.14.tgz#84752a38d687737cb2c3952b5045d3b68ba841f1"
+  integrity sha512-B25rACJGZIRJjJpnRz8vQKEibJgKhuRIpakQ3UwdMVUGps8OHwqpHb4G/iydkwENSGDBbf94Fajw3PliT6gh9A==
+
 react-is@^16.13.1, react-is@^16.3.2:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
