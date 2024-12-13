@@ -11,6 +11,7 @@ import BookTickets from './components/BookTickets';
 import Payment from './components/Payment';
 import PaymentSuccess from './components/PaymentSuccess'; // Import PaymentSuccess
 import apigClient from './components/api';
+import MyBookings from './components/MyBookings';
 
  
 // var apigClient = apigClientFactory.newClient({
@@ -119,7 +120,7 @@ const App = () => {
   // Events Page Component
   const Events = () => (
     <div style={{ flex: 1, padding: "2rem", backgroundColor: "#f8f9fa" }}>
-      <h2>All Events</h2>
+      <h2 className='mb-3'>All Events</h2>
       <div
         style={{
           display: "flex",
@@ -165,7 +166,7 @@ const App = () => {
         />
         <Route path="/payment_success" element={<PaymentSuccess />} />
         <Route path="/" element={<Events />} />
-        {/* <Route path="/events" element={<Events />} /> */}
+        <Route path="/my-bookings" element={<MyBookings />} />
         {/* <Route path="*" element={<NotFound />} /> */}
       </Routes>
     </div>

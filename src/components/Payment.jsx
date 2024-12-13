@@ -30,6 +30,7 @@ const Payment = () => {
     name_on_card: "",
     expiry_date: "",
     cvv: "",
+    email:""
   });
 
   const timerRef = useRef(null);
@@ -65,6 +66,7 @@ const handlePayment = async () => {
     expiry_date: formData.expiry_date,
     cvv: formData.cvv,
     event_id: reservationDetails.event.event_id,
+    email_id: formData.email_id, // Add email_id here
     user_id: reservationDetails.user_id, // Replace with dynamic user ID
     seat_numbers: reservationDetails.tickets.map((ticket) => ticket.seat_no),
   };
@@ -187,6 +189,22 @@ const handlePayment = async () => {
               type="text"
               name="cvv"
               value={formData.cvv}
+              onChange={handleChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>Email ID:</label>
+            <input
+              type="email"
+              name="email_id"
+              value={formData.email_id}
               onChange={handleChange}
               style={{
                 width: "100%",

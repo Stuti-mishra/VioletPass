@@ -9,7 +9,7 @@ const CreateNewButton = () => {
 
   return (
     <>
-      <Dropdown>
+      <Dropdown style={{marginRight:'20%'}}>
         <Dropdown.Toggle style={{ backgroundColor: '#28a745', border: 'none', borderRadius: '4px' }}>
           + Create new
         </Dropdown.Toggle>

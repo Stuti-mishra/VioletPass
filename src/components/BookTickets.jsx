@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./BookTickets.css";
 import apigClient from "./api";
+import {USERID} from '../utils'
 
 const MAX_TICKET_LIMIT = 5; // Maximum tickets user can select
-const USERID = "pranav_1"; // Simulated user ID
+// const USERID = "pranav_1"; // Simulated user ID
 
 const BookTickets = () => {
   const { state } = useLocation(); // Access the passed event

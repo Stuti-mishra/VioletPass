@@ -10,14 +10,14 @@ const SearchBar = ({ onSearch }) => {
   };
 
   return (
-    <InputGroup className="mt-3" style={{ maxWidth: "70%" }}>
+    <InputGroup className="" style={{ maxWidth: "50%" }}>
       <Form.Control
         type="text"
         placeholder="Search by event name..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <Button variant="primary" onClick={handleSearch}>
+      <Button variant="primary" onClick={handleSearch} >
         Search
       </Button>
     </InputGroup>
