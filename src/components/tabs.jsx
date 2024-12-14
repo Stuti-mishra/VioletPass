@@ -5,7 +5,7 @@ const Tabs = ({ upcomingEvents, endedEvents, archivedEvents, onKnowMore }) => {
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const tabs = ["Upcoming", "Ended", "Archived"];
+  const tabs = ["Upcoming", "Ended"];
   const getActiveEvents = () => {
     if (activeTab === "Upcoming") return upcomingEvents;
     if (activeTab === "Ended") return endedEvents;

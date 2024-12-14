@@ -1,29 +1,26 @@
-import React, { useState } from 'react';
-import Dropdown from 'react-bootstrap/Dropdown';
-import CreateEventModal from './CreateEventModal';
-import CreateOrganizerModal from './CreateOrganizerModal';
+import React, { useState } from "react";
+import { Button } from "react-bootstrap";
+import CreateEventModal from "./CreateEventModal";
 
-const CreateNewButton = () => {
+const CreateNewEvent = () => {
   const [showEventModal, setShowEventModal] = useState(false);
-  const [showOrganizerModal, setShowOrganizerModal] = useState(false);
 
   return (
     <>
-      <Dropdown>
-        <Dropdown.Toggle style={{ backgroundColor: '#28a745', border: 'none', borderRadius: '4px' }}>
-          + Create new
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          <Dropdown.Item onClick={() => setShowEventModal(true)}>Event</Dropdown.Item>
-          <Dropdown.Item onClick={() => setShowOrganizerModal(true)}>Organizer</Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
+      <Button
+        style={{ backgroundColor: "#28a745", border: "none", borderRadius: "4px" }}
+        onClick={() => setShowEventModal(true)}
+      >
+        + Create New Event
+      </Button>
 
-      {/* Modals */}
-      <CreateEventModal show={showEventModal} handleClose={() => setShowEventModal(false)} />
-      <CreateOrganizerModal show={showOrganizerModal} handleClose={() => setShowOrganizerModal(false)} />
+      {/* Event Modal */}
+      <CreateEventModal
+        show={showEventModal}
+        handleClose={() => setShowEventModal(false)}
+      />
     </>
   );
 };
 
-export default CreateNewButton;
+export default CreateNewEvent;

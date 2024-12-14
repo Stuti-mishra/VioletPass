@@ -1,80 +1,117 @@
 import React, { useState, useEffect } from 'react';
-// import './OrganizerDashboard.css'; // Add styles if needed
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Header from './Header';
+import Tabs from './tabs';
+import SearchBar from './SearchBar';
+import CreateNewButton from './CreateNewButton';
+import EventCard from './EventCard';
+import EventModal from './EventModal';
+import BookTickets from './BookTickets';
+import Payment from './Payment';
+import PaymentSuccess from './PaymentSuccess'; // Import PaymentSuccess
+import apigClient from './api';
+import MyBookings from './MyBookings';
+import { showLoading } from "react-global-loading";
+import AdminQRCodeScanner from './AdminQRCodeScanner';
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
-const OrganizerDashboard = () => {
+
+// var apigClient = apigClientFactory.newClient({
+//   apiKey: import.meta.env.API_KEY,
+// });
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+const Home = () => {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Simulating API call to fetch events hosted by the organizer
+
   useEffect(() => {
+    // Fetch events from the API
     const fetchEvents = async () => {
+      showLoading(true)
       try {
-        // Replace this with an actual API call
-        const response = await Promise.resolve([
-          {
-            id: 1,
-            name: 'Music Festival 2024',
-            ticketsBooked: 150,
-            peopleCheckedIn: 120,
-          },
-          {
-            id: 2,
-            name: 'Tech Conference 2024',
-            ticketsBooked: 200,
-            peopleCheckedIn: 180,
-          },
-          {
-            id: 3,
-            name: 'Art Exhibition',
-            ticketsBooked: 100,
-            peopleCheckedIn: 90,
-          },
-        ]);
-        setEvents(response);
+        const response = await apigClient.eventsGet({}, {}, {});
+        console.log("Response", response);
+        setEvents(response.data); // Update events with the fetched data
+
       } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching events:", error);
+      } finally{
+        showLoading(false)
       }
     };
 
-    fetchEvents();
+    fetchEvents(); // Trigger the fetch
   }, []);
 
-  if (loading) {
-    return <p>Loading events...</p>;
-  }
 
-  return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ textAlign: 'center' }}>Organizer Dashboard</h1>
-      <table
+
+  const Events = () => (
+  <div style={{ flex: 1, padding: "2rem", backgroundColor: "#f8f9fa" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "1rem",
+      }}
+    >
+      <div style={{ flex: 1, marginRight: "0.5rem" }}>
+        <AdminQRCodeScanner />
+      </div>
+      <div style={{ flex: 1, marginLeft: "0.5rem" }}>
+        <CreateNewButton />
+      </div>
+      </div>
+      <h2 className='text-center mt-5'>Event Statistics</h2>
+      <div
         style={{
-          width: '100%',
-          marginTop: '2rem',
-          borderCollapse: 'collapse',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "1rem",
         }}
       >
-        <thead>
-          <tr style={{ backgroundColor: '#6f42c1', color: '#fff' }}>
-            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Event Name</th>
-            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Tickets Booked</th>
-            <th style={{ padding: '0.5rem', textAlign: 'left' }}>People Checked In</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((event) => (
-            <tr key={event.id} style={{ borderBottom: '1px solid #ccc' }}>
-              <td style={{ padding: '0.5rem' }}>{event.name}</td>
-              <td style={{ padding: '0.5rem' }}>{event.ticketsBooked}</td>
-              <td style={{ padding: '0.5rem' }}>{event.peopleCheckedIn}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        {events.map((event, index) => {
+          // Pie chart data for each event
+          const bookedTickets = event.total_tickets - event.available_tickets;
+          const data = {
+            labels: ["Tickets Available", "Tickets Booked"],
+            datasets: [
+              {
+                data: [event.available_tickets, bookedTickets],
+                backgroundColor: ["#36A2EB", "#FF6384"], // Chart colors
+                hoverBackgroundColor: ["#5AB4F5", "#FF839C"], // Hover colors
+              },
+            ],
+          };
+
+          return (
+            <div
+              key={index}
+              style={{
+                border: "1px solid #ddd",
+                padding: "1rem",
+                borderRadius: "8px",
+              }}
+            >
+              <h5 className='text-center'>{event.name}</h5>
+              <Pie data={data} options={{
+                maintainAspectRatio: true,
+                responsive: true,
+              }}
+              style={{ maxHeight: "200px", maxWidth: "200px", margin: "0 auto" }} />
+            </div>
+          );
+        })}
     </div>
+    </div>
+);
+  return (
+    <Events />
   );
 };
 
-export default OrganizerDashboard;
+export default Home;

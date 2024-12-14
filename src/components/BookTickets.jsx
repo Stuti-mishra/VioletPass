@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./BookTickets.css";
 import apigClient from "./api";
+import { useAuth } from "react-oidc-context";
 
 const MAX_TICKET_LIMIT = 5; // Maximum tickets user can select
 const USERID = "pranav_1"; // Simulated user ID
@@ -9,6 +10,8 @@ const USERID = "pranav_1"; // Simulated user ID
 const BookTickets = () => {
   const { state } = useLocation(); // Access the passed event
   const { event } = state || {}; // Destructure the event variable
+  const auth = useAuth()
+  const user_id = auth?.user?.profile?.sub || USERID;
   const [selectedTickets, setSelectedTickets] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state for API call
   const navigate = useNavigate();
@@ -76,7 +79,7 @@ const BookTickets = () => {
       // Step 1: Call /book POST to reserve tickets
       const postBody = {
         event_id: event.event_id,
-        user_id: USERID,
+        user_id: user_id,
         seat_numbers: selectedTickets.map((ticket) => ticket.seat_no),
       };
 
@@ -87,7 +90,7 @@ const BookTickets = () => {
           ? JSON.parse(postResponse.data.body)
           : postResponse.data.body;
 
-      const reserveId = parsedBody.reserveID || parsedBody.reserveId;
+      const reserveId = parsedBody.reserve_id || parsedBody.reserveId;
 
       if (!reserveId) {
         throw new Error("reserveID not found in POST response");
@@ -115,7 +118,8 @@ const BookTickets = () => {
               event,
               tickets: selectedTickets,
               reserveId,
-              user_id: USERID,
+              
+              user_id: user_id,
             },
           },
         });

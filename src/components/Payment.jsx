@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, memo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import apigClient from "./api";
+import { useAuth } from "react-oidc-context";
+const USERID = "pranav_1";
 
 const Timer = memo(({ timeLeft }) => (
   <p>
@@ -13,6 +15,7 @@ Timer.displayName = "Timer";
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const auth = useAuth()
 
   const reservationDetails = location.state?.reservationDetails || {
     eventName: "Music Festival 2024",
@@ -30,6 +33,7 @@ const Payment = () => {
     name_on_card: "",
     expiry_date: "",
     cvv: "",
+    email:""
   });
 
   const timerRef = useRef(null);
@@ -65,7 +69,8 @@ const handlePayment = async () => {
     expiry_date: formData.expiry_date,
     cvv: formData.cvv,
     event_id: reservationDetails.event.event_id,
-    user_id: reservationDetails.user_id, // Replace with dynamic user ID
+    email_id: formData.email_id, // Add email_id here
+    user_id: auth?.user?.profile?.sub || USERID, // Replace with dynamic user ID
     seat_numbers: reservationDetails.tickets.map((ticket) => ticket.seat_no),
   };
 
@@ -139,7 +144,13 @@ const handlePayment = async () => {
               name="card_number"
               value={formData.card_number}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -149,7 +160,13 @@ const handlePayment = async () => {
               name="name_on_card"
               value={formData.name_on_card}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -160,7 +177,13 @@ const handlePayment = async () => {
               value={formData.expiry_date}
               onChange={handleChange}
               placeholder="YYYY"
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <div style={{ marginBottom: "1rem" }}>
@@ -170,7 +193,29 @@ const handlePayment = async () => {
               name="cvv"
               value={formData.cvv}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <label>Email ID:</label>
+            <input
+              type="email"
+              name="email_id"
+              value={formData.email_id}
+              onChange={handleChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                marginTop: "0.5rem",
+                backgroundColor: "#fff",
+                color: "#000",
+              }}
             />
           </div>
           <button

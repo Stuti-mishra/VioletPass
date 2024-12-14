@@ -1,107 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate , useNavigate} from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Header from './components/Header';
-import Tabs from './components/tabs';
-import SearchBar from './components/SearchBar';
-import CreateNewButton from './components/CreateNewButton';
-import EventModal from './components/EventModal';
-import BookTickets from './components/BookTickets';
-import Payment from './components/Payment';
-import PaymentSuccess from './components/PaymentSuccess';
-import apigClient from './components/api';
-import OrganizerDashboard from './components/OrganizerDashboard';
+import "bootstrap/dist/css/bootstrap.min.css";
+import Header from "./components/Header";
+import Home from "./components/Home";
+import OrganizerDashboard from "./components/OrganizerDashboard";
+import BookTickets from "./components/BookTickets";
+import Payment from "./components/Payment";
+import PaymentSuccess from "./components/PaymentSuccess";
+import NotFound from "./components/NotFound"; // Fallback for undefined routes
+import MyBookings from "./components/MyBookings";
 
-// Updated App Component
+// Main App Component
 const App = () => {
   const auth = useAuth();
+  const [isAdmin,setIsAdmin] = useState(false)
   const navigate = useNavigate();
 
-  // Mock event state
-  const [events, setEvents] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [endedEvents, setEndedEvents] = useState([]);
-  const [archivedEvents, setArchivedEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  //setIsAdmin(auth.user?.profile?.["cognito:groups"][0]?true:false)
+  // setIsAdmin(auth.user?.profile?.["cognito:groups"]?.includes("Admin"));
+  const [userGroups, setUserGroups] = useState([]);
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
-  // Fetch user events from API
+  // Fetch user groups from the Cognito ID token after login
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await apigClient.eventsGet({}, {}, {});
-        const data = response.data;
-        const today = new Date();
-
-        setEvents(data);
-        setUpcomingEvents(data.filter(event => new Date(event.end_date) > today));
-        setEndedEvents(data.filter(event => new Date(event.end_date) <= today));
-        setArchivedEvents(data.filter(event => event.isArchived));
-      } catch (error) {
-        console.error("Error fetching events:", error);
+    const fetchUserGroups = async () => {
+      console.log('Use EFfect!')
+      if (auth.isAuthenticated) {
+        setIsLoadingGroups(true)
+        try {
+          const groups = auth.user?.profile?.["cognito:groups"] || []; // Get groups from Cognito
+          setIsAdmin(auth.user?.profile?.["cognito:groups"]?.includes("Admin"));
+          console.log('Groups',groups)
+          setUserGroups(groups);
+        } catch (error) {
+          console.error("Error fetching user groups:", error);
+        } finally {
+          setIsLoadingGroups(false);
+        }
       }
     };
+    
 
-    fetchEvents();
-  }, []);
+    fetchUserGroups();
+  }, [auth.isAuthenticated, auth.user]);
+  // useEffect(() => {
+  //   if (isAdmin) {
+  //     navigate("/organizer-dashboard");
+  //   }
+  // }, 
+  // [isAdmin, navigate]);
+  // Loading Screen While Groups or Auth Are Loading
+  if (auth.isLoading || isLoadingGroups) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
 
-  // Handlers for modal
-  const handleKnowMore = (event) => {
-    setSelectedEvent(event);
-    setShowModal(true);
-  };
+  // Error Handling
+  if (auth.error) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <h2>Error: {auth.error.message}</h2>
+      </div>
+    );
+  }
 
-  const handleCloseModal = () => {
-    setSelectedEvent(null);
-    setShowModal(false);
-  };
-
-  // Redirect user to login if not authenticated
-  const ProtectedRoute = ({ children }) => {
+  // Protected Route Wrapper for Authentication
+  const ProtectedRoute = ({ children, allowedGroups = [] }) => {
     if (!auth.isAuthenticated) {
       auth.signinRedirect();
       return <div>Redirecting to login...</div>;
     }
+
+    // Role-based Access Control (if `allowedGroups` is defined)
+    console.log('Allowerd Groups',allowedGroups)
+    console.log('Condition', userGroups)
+    if (allowedGroups.length > 0 && !userGroups.some((group) => allowedGroups.includes(group))) {
+      print('Inside!!!!!!!!!!!')
+      return <Navigate to="/" replace />; // Redirect unauthorized users to the Home page
+    }
     return children;
   };
 
-  if (auth.isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (auth.error) {
-    return <div>Encountering error... {auth.error.message}</div>;
-  }
-
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
-      <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-        {auth.isAuthenticated ? (
-          <>
-            <pre>Hello: {auth.user?.profile.email}</pre>
-            <button onClick={() => auth.removeUser()} className="btn btn-danger">
-              Logout
-            </button>
-          </>
-        ) : (
-          <button onClick={() => auth.signinRedirect()} className="btn btn-primary">
-            Login
-          </button>
-        )}
-      </div>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+      <Header auth={auth} /> {/* Pass `auth` to the Header component for login/logout logic */}
       <Routes>
-        <Route path="/" element={<Home />} />
+
+        {/* Public Route */}
         <Route
+  path="/"
+  element={
+    isAdmin ? <OrganizerDashboard /> : <Home />
+  }
+/>        
+        {/* Organizer Protected Route */}
+        {/* <Route
           path="/organizer-dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedGroups={["Admin"]}>
               <OrganizerDashboard />
             </ProtectedRoute>
           }
-        />
+        /> */}
+        <Route path="/my-bookings" element={<ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>} />
+
+        {/* Book Tickets (Accessible to All Authenticated Users) */}
         <Route
           path="/book-ticket"
           element={
@@ -110,6 +127,8 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Payment Process */}
         <Route
           path="/payment"
           element={
@@ -118,6 +137,8 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Payment Success */}
         <Route
           path="/payment_success"
           element={
@@ -126,17 +147,13 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        
+
+        {/* Catch-All for Undefined Routes */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
 };
-
-// Home Page Component
-const Home = () => (
-  <div style={{ padding: '2rem', backgroundColor: '#f8f9fa' }}>
-    <h2>Welcome to the Event Booking App</h2>
-    <p>Explore and book tickets for exciting events near you.</p>
-  </div>
-);
 
 export default App;
