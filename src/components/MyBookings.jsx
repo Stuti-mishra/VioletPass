@@ -4,7 +4,6 @@ import { Card, Row, Col, Button, Modal, Form } from "react-bootstrap";
 import QRCode from "qrcode";
 import { showLoading } from "react-global-loading";
 import apigClient from "./api";
-import AdminQRCodeScanner from "./AdminQRCodeScanner";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);

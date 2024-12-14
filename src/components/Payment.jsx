@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import apigClient from "./api";
 import { useAuth } from "react-oidc-context";
 const USERID = "pranav_1";
+import { showLoading } from "react-global-loading";
 
 const Timer = memo(({ timeLeft }) => (
   <p>
@@ -75,6 +76,7 @@ const handlePayment = async () => {
   };
 
   try {
+    showLoading(true)
     // Step 1: Call /pay POST to initiate the payment
     const postResponse = await apigClient.payPost({}, payBody, {});
    
@@ -117,6 +119,8 @@ const handlePayment = async () => {
   } catch (error) {
     console.error("Payment error:", error);
     alert("Something went wrong. Please try again.");
+  }finally{
+    showLoading(false)
   }
 };
 

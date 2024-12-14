@@ -11,7 +11,7 @@ const CreateNewEvent = () => {
         style={{ backgroundColor: "#28a745", border: "none", borderRadius: "4px" }}
         onClick={() => setShowEventModal(true)}
       >
-        + Create New Event
+        Create New Event
       </Button>
 
       {/* Event Modal */}

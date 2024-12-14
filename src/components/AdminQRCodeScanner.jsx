@@ -11,17 +11,18 @@ const AdminQRCodeScanner = () => {
   const [alertVariant, setAlertVariant] = useState("success"); // Alert type
   const [alertText, setAlertText] = useState(""); // Alert message
 
-  const handleScan = (result, error) => {
+  const handleScan = async (result, error) => {
     if (result) {
-      
-      setScannedData(result?.text);
       // const [seat_no, payment_id] = scannedData.split("-");
+      
       const [seat_no, ...paymentParts] = result.text.split("-");
       const payment_id = paymentParts.join("-");
+      setScannedData(result?.text);
+      // setScannedData(res)
       console.log('Scanned Text', seat_no,payment_id)
       if (seat_no && payment_id) {
         setIsCameraActive(false);
-        callApi(seat_no, payment_id);
+        callApi(seat_no,payment_id)
       } else {
         setIsCameraActive(false);
         setAlertText("Invalid QR Code format.");
@@ -37,20 +38,26 @@ const AdminQRCodeScanner = () => {
   const callApi = async (seat_no, payment_id) => {
     try {
       // Call API with query parameters
-      console.log('before',seat_no,payment_id)
-      const response = await apigClient.scanGet( { payment_id, seat_no },{}, {});
+      const params = {payment_id,seat_no}
+      const response = await apigClient.scanGet(params);
       console.log('RES C',response)
       
       if (response.status === 200) {
-        setAlertText("Ticket Confirmed!");
+        setAlertText(response.data);
         setAlertVariant("success");
+      } else if (response.status === 409) {
+        setAlertText(response.data);
+        setAlertVariant("warning");
+      } else if (response.status === 404) {
+        setAlertText(response.data);
+        setAlertVariant("warning");
       } else {
         setAlertText("Ticket verification failed.");
         setAlertVariant("danger");
       }
     } catch (err) {
-      console.error(err);
-      setAlertText("An error occurred while verifying the ticket.");
+      console.error('Err',err);
+      setAlertText(err.response.data);
       setAlertVariant("danger");
     }
     setShowAlert(true);
@@ -63,17 +70,17 @@ const AdminQRCodeScanner = () => {
 
   const dismissAlert = () => {
     setShowAlert(false); // Hide the alert
-    setScannedData(""); // Clear scanned data
+    setScannedData({}); // Clear scanned data
   };
 
   return (
     <Container style={{ padding: "2rem" }}>
-      <h2 className='text-center'>QR Code Scanner</h2>
+      <h2 className="text-center">QR Code Scanner</h2>
       <Row className="justify-content-center">
         <Col md={6}>
           {isCameraActive ? (
             <QrReader
-              scanDelay={300}
+              scanDelay={500}
               onResult={handleScan}
               style={{ width: "100%" }}
             />
@@ -89,10 +96,9 @@ const AdminQRCodeScanner = () => {
       </Row>
       <Row className="mt-4">
         <Col>
-          {scannedData && (
-            <Alert variant="success" dismissible onClose={dismissAlert}>
-              <h5>Ticket Confirmed</h5>
-              <p>{scannedData}</p>
+          {showAlert && (
+            <Alert variant={alertVariant} dismissible onClose={dismissAlert}>
+              <h5 className="text-center">{alertText}</h5>
             </Alert>
           )}
         </Col>

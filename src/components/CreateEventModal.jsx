@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; // Import styles for the date picker
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { showLoading } from "react-global-loading";
 
 
 // eslint-disable-next-line no-undef
@@ -40,6 +41,7 @@ const CreateEventModal = ({ show, handleClose, onEventCreated }) => {
     };
 
     try {
+      showLoading(true)
       const response = await apigClient.eventsPost({}, requestBody, {
         headers: { "Content-Type": "application/json" },
       });
@@ -55,6 +57,8 @@ const CreateEventModal = ({ show, handleClose, onEventCreated }) => {
       }
     } catch (error) {
       console.error("Error creating event:", error);
+    }finally{
+      showLoading(false)
     }
   };
 

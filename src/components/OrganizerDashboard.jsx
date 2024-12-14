@@ -62,7 +62,7 @@ const Home = () => {
       <div style={{ flex: 1, marginRight: "0.5rem" }}>
         <AdminQRCodeScanner />
       </div>
-      <div style={{ flex: 1, marginLeft: "0.5rem" }}>
+      <div style={{ flex: 1, marginLeft: "0.5rem", textAlign:'center' }}>
         <CreateNewButton />
       </div>
       </div>
