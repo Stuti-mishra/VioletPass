@@ -5,6 +5,12 @@
 # VioletPass
 This platform streamlines event ticket sales, attendee management, and entry access. With robust features like real-time ticket tracking, customizable event pages, and seamless integrations, it’s designed to make hosting and attending events easier than ever.
 
+## System Architecture
+
+The VioletPass platform is designed for scalability, user-centric functionality, and seamless integrations. Below is the system architecture:
+
+![System Architecture](./arch/architechture.png)
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
